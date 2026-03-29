@@ -1,0 +1,9 @@
+{
+  "name": "CondoPro - Gestão Inteligente",
+  "description": "Plataforma premium para controle financeiro, manutenção e governança condominial.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

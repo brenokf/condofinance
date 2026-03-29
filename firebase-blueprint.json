@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "resident"] }
+      },
+      "required": ["email", "role"]
+    },
+    "AccountPlan": {
+      "title": "Account Plan",
+      "description": "A category in the chart of accounts.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "parent_id": { "type": "string", "description": "ID of the parent category" }
+      },
+      "required": ["code", "name", "type"]
+    },
+    "Entry": {
+      "title": "Financial Entry",
+      "description": "A single income or expense record.",
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["income", "expense"] },
+        "account_plan_id": { "type": "string" },
+        "attachment_url": { "type": "string", "format": "uri" }
+      },
+      "required": ["amount", "description", "date", "type", "account_plan_id"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles."
+    },
+    "/account_plan/{planId}": {
+      "schema": "AccountPlan",
+      "description": "Chart of accounts categories."
+    },
+    "/entries/{entryId}": {
+      "schema": "Entry",
+      "description": "Financial entries for the condominium."
+    }
+  }
+}

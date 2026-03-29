@@ -1,0 +1,128 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Auth UID)
+    // Fields:
+    //   - email: string (required) - User's email
+    //   - role: string (required, 'admin' or 'resident') - User's role
+    //
+    // Collection: account_plan
+    // Document ID: auto-generated
+    // Fields:
+    //   - code: string (required) - Category code (e.g., '1.1')
+    //   - name: string (required) - Category name
+    //   - type: string (required, 'income' or 'expense') - Category type
+    //   - parent_id: string (optional) - ID of the parent category
+    //
+    // Collection: entries
+    // Document ID: auto-generated
+    // Fields:
+    //   - amount: number (required) - Transaction amount
+    //   - description: string (required) - Transaction description
+    //   - date: string (required, ISO 8601) - Transaction date
+    //   - type: string (required, 'income' or 'expense') - Transaction type
+    //   - account_plan_id: string (required) - ID of the category
+    //   - attachment_url: string (optional) - URL to attachment
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+         (request.auth.token.email == "breno-kf@hotmail.com"));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['email', 'role']) &&
+             data.email is string && isValidEmail(data.email) &&
+             data.role in ['admin', 'resident'];
+    }
+
+    function isValidAccountPlan(data) {
+      return hasOnlyAllowedFields(['code', 'name', 'type', 'parent_id']) &&
+             data.code is string && data.code.size() > 0 && data.code.size() < 20 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.type in ['income', 'expense'] &&
+             (!('parent_id' in data) || data.parent_id is string || data.parent_id == null);
+    }
+
+    function isValidEntry(data) {
+      return hasOnlyAllowedFields(['amount', 'description', 'date', 'type', 'account_plan_id', 'attachment_url']) &&
+             data.amount is number && data.amount >= 0 &&
+             data.description is string && data.description.size() > 0 && data.description.size() < 500 &&
+             isValidDateString(data.date) &&
+             data.type in ['income', 'expense'] &&
+             data.account_plan_id is string &&
+             (!('attachment_url' in data) || isValidUrl(data.attachment_url));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && 
+                      (request.resource.data.role == 'resident' || 
+                       (request.resource.data.email == "breno-kf@hotmail.com" && request.resource.data.role == 'admin'));
+      allow update: if isAdmin() && isValidUser(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /account_plan/{planId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidAccountPlan(request.resource.data);
+      allow update: if isAdmin() && isValidAccountPlan(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /entries/{entryId} {
+      allow read: if true;
+      allow create: if isAdmin() && isValidEntry(request.resource.data);
+      allow update: if isAdmin() && isValidEntry(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}
