@@ -228,9 +228,21 @@ const ResidentDashboard = () => {
                       {entry.description}
                     </td>
                     <td className="px-8 py-4">
-                      <span className="px-2 py-1 bg-slate-800 rounded text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        {category?.name || '---'}
-                      </span>
+                      {category ? (
+                        <div className="group relative inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700/50 rounded-xl shadow-inner shadow-white/5 hover:border-indigo-500/50 hover:shadow-[0_0_15px_-3px_rgba(99,102,241,0.2)] transition-all cursor-default overflow-hidden" title={category.name}>
+                          <div className="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/10 transition-colors" />
+                          <span className="relative z-10 px-2 py-0.5 bg-black/40 border border-white/5 rounded-md text-[9px] font-black text-indigo-300 shadow-sm">
+                            {category.code}
+                          </span>
+                          <span className="relative z-10 text-[10px] font-bold text-slate-300 truncate max-w-[150px] group-hover:text-white transition-colors">
+                            {category.name}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="px-3 py-1.5 bg-slate-800 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                          ---
+                        </span>
+                      )}
                     </td>
                     <td className={`px-8 py-4 text-xs font-black text-right ${entry.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {entry.type === 'income' ? '+' : '-'} R$ {entry.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
