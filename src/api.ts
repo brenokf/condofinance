@@ -30,7 +30,7 @@ export const loginWithGoogle = async () => {
     const userDoc = await getDoc(doc(db, 'users', user.uid));
     console.log('User doc exists:', userDoc.exists());
     if (!userDoc.exists()) {
-      const role = user.email === 'breno-kf@hotmail.com' || user.email === 'vanessagestora20@gmail.com' ? 'admin' : 'resident';
+      const role = 'resident';
       console.log('Creating user doc with role:', role);
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
