@@ -297,7 +297,6 @@ const AdminDashboard = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-slate-800">
-                  <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Código</th>
                   <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Categoria</th>
                   <th className="pb-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Total Acumulado</th>
                 </tr>
@@ -313,7 +312,6 @@ const AdminDashboard = () => {
                   
                   return (
                     <tr key={cat.id} className="group hover:bg-slate-800/30 transition-colors">
-                      <td className="py-4 text-xs font-black text-slate-500">{cat.code}</td>
                       <td className="py-4 text-xs font-bold text-slate-200">{cat.name}</td>
                       <td className="py-4 text-xs font-black text-white text-right">R$ {catTotal.toLocaleString('pt-BR')}</td>
                     </tr>

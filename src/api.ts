@@ -28,15 +28,20 @@ export const loginWithGoogle = async () => {
     
     // Check if user exists in Firestore, if not create as resident
     const userDoc = await getDoc(doc(db, 'users', user.uid));
+    console.log('User doc exists:', userDoc.exists());
     if (!userDoc.exists()) {
       const role = user.email === 'breno-kf@hotmail.com' ? 'admin' : 'resident';
+      console.log('Creating user doc with role:', role);
       await setDoc(doc(db, 'users', user.uid), {
         email: user.email,
         role: role
       });
+      console.log('User doc created');
       return { email: user.email, role };
     }
-    return userDoc.data();
+    const data = userDoc.data();
+    console.log('User doc data:', data);
+    return data;
   } catch (error) {
     console.error("Login Error:", error);
     throw error;
@@ -47,8 +52,18 @@ export const logout = async () => {
   await signOut(auth);
 };
 
+const ensureAccountPlanSeeded = async () => {
+  const planSnap = await getDocs(collection(db, 'account_plan'));
+  if (planSnap.empty) {
+    console.log('account_plan is missing or empty, running seedAccountPlan...');
+    await seedAccountPlan();
+  }
+};
+
 export const getDashboardData = async () => {
   try {
+    await ensureAccountPlanSeeded();
+
     const entriesSnap = await getDocs(collection(db, 'entries'));
     const planSnap = await getDocs(collection(db, 'account_plan'));
     
@@ -63,7 +78,10 @@ export const getDashboardData = async () => {
 
 export const getAccountPlan = async () => {
   try {
+    await ensureAccountPlanSeeded();
+
     const snap = await getDocs(collection(db, 'account_plan'));
+    console.log('Fetched account plan:', snap.docs.length, 'documents');
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch (error) {
     console.error("Error fetching account plan:", error);
@@ -73,9 +91,17 @@ export const getAccountPlan = async () => {
 
 export const createEntry = async (entry: any) => {
   try {
+    const currentUser = auth.currentUser;
+    console.debug('createEntry currentUser:', currentUser?.uid, currentUser?.email, currentUser?.isAnonymous);
+
+    if (!currentUser) {
+      throw new Error('User not authenticated when creating entry');
+    }
+
     const docRef = await addDoc(collection(db, 'entries'), {
       ...entry,
-      createdAt: serverTimestamp()
+      createdAt: new Date().toISOString(),
+      uid: currentUser.uid,
     });
     return { id: docRef.id };
   } catch (error) {
@@ -116,6 +142,7 @@ export const resetAccountPlan = async () => {
 };
 
 export const seedAccountPlan = async () => {
+  console.log('Starting seedAccountPlan...');
   try {
     const planSnap = await getDocs(collection(db, 'account_plan'));
     console.log(`Checking account plan... Found ${planSnap.size} categories.`);
@@ -185,15 +212,25 @@ export const seedAccountPlan = async () => {
     const codeToId: any = {};
     for (const cat of categories) {
       const { parent_code, ...rest } = cat;
-      const parent_id = parent_code ? codeToId[parent_code] : (cat.parent_id || null);
-      
-      const docRef = await addDoc(collection(db, 'account_plan'), {
+      const parentIdFromMap = parent_code ? codeToId[parent_code] : null;
+      const parent_id = parent_code ? (parentIdFromMap || null) : (cat.parent_id ?? null);
+
+      const payload: any = {
         code: cat.code,
         name: cat.name,
         type: cat.type,
-        parent_id: parent_id
-      });
-      codeToId[cat.code] = docRef.id;
+      };
+      if (parent_id !== undefined && parent_id !== null) {
+        payload.parent_id = parent_id;
+      }
+
+      try {
+        const docRef = await addDoc(collection(db, 'account_plan'), payload);
+        codeToId[cat.code] = docRef.id;
+        console.log(`Added category: ${cat.code} - ${cat.name}`);
+      } catch (error) {
+        console.error(`Failed to add category ${cat.code}:`, error);
+      }
     }
     console.log("Seeding complete.");
   } catch (error) {

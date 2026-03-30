@@ -47,11 +47,18 @@ const App = () => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-        if (userDoc.exists()) {
-          setUser(userDoc.data() as any);
-        } else {
-          // Fallback for new users if loginWithGoogle didn't handle it
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            setUser(userDoc.data() as any);
+          } else {
+            // Fallback for new users if loginWithGoogle didn't handle it
+            const role = firebaseUser.email === 'breno-kf@hotmail.com' ? 'admin' : 'resident';
+            setUser({ email: firebaseUser.email || '', role });
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // Fallback to email-based role
           const role = firebaseUser.email === 'breno-kf@hotmail.com' ? 'admin' : 'resident';
           setUser({ email: firebaseUser.email || '', role });
         }
@@ -66,6 +73,7 @@ const App = () => {
 
   useEffect(() => {
     if (user?.role === 'admin') {
+      console.log('User is admin, calling seedAccountPlan');
       seedAccountPlan();
     }
   }, [user]);
@@ -96,6 +104,11 @@ const MainLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = user?.role === 'admin' ? [

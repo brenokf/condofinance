@@ -319,23 +319,31 @@ const Entries = () => {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Categoria (Plano de Contas)</label>
-                  <select 
+                  <select
                     required
                     value={formData.account_plan_id}
                     onChange={(e) => setFormData({ ...formData, account_plan_id: e.target.value })}
-                    className="w-full px-6 py-4 bg-slate-800 border border-slate-700 rounded-2xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-2xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                   >
                     <option value="">Selecione uma categoria...</option>
                     {accountPlan
-                      .filter(ap => ap.type === formData.type)
-                      .map((ap) => (
-                        <option key={ap.id} value={ap.id}>
-                          {ap.code} - {ap.name}
-                        </option>
-                      ))}
+                      .filter(ap => ap.type === formData.type && !ap.parent_id)
+                      .map(parent => {
+                        const children = accountPlan.filter(ap => ap.parent_id === parent.id);
+                        return (
+                          <optgroup key={parent.id} label={parent.name}>
+                            <option value={parent.id} className="font-black">{parent.name}</option>
+                            {children.map(child => (
+                              <option key={child.id} value={child.id}>
+                                {'\u00A0\u00A0'}↳ {child.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
                   </select>
                   {accountPlan.filter(ap => ap.type === formData.type).length === 0 && (
-                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-4 mt-2">
+                    <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest mt-2">
                       Nenhuma categoria de {formData.type === 'income' ? 'receita' : 'despesa'} encontrada.
                     </p>
                   )}

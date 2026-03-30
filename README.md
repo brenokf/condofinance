@@ -15,6 +15,11 @@ View your app in AI Studio: https://ai.studio/apps/2728e832-5d84-4e1d-b41e-0ab4b
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Copy [.env.example](.env.example) to [.env.local](.env.local) and fill secrets:
+   - `GEMINI_API_KEY`
+   - `APP_URL`
+   - `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, etc.
 3. Run the app:
    `npm run dev`
+
+> NOTE: `firebase-applet-config.json` is now ignored by git; prefer env vars (or local file with non-production keys).
