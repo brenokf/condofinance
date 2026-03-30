@@ -53,14 +53,12 @@ const App = () => {
             setUser(userDoc.data() as any);
           } else {
             // Fallback for new users if loginWithGoogle didn't handle it
-            const role = firebaseUser.email === 'breno-kf@hotmail.com' || firebaseUser.email === 'vanessagestora20@gmail.com' ? 'admin' : 'resident';
-            setUser({ email: firebaseUser.email || '', role });
+            setUser({ email: firebaseUser.email || '', role: 'resident' });
           }
         } catch (error) {
           console.error('Error fetching user data:', error);
-          // Fallback to email-based role
-          const role = firebaseUser.email === 'breno-kf@hotmail.com' || firebaseUser.email === 'vanessagestora20@gmail.com' ? 'admin' : 'resident';
-          setUser({ email: firebaseUser.email || '', role });
+          // Fallback to resident role
+          setUser({ email: firebaseUser.email || '', role: 'resident' });
         }
       } else {
         setUser(null);
