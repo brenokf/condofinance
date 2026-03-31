@@ -58,7 +58,10 @@ const Login = () => {
               className="space-y-4"
             >
               <button 
-                onClick={() => navigate('/')}
+                onClick={() => {
+                  login({ email: 'Acesso Público', role: 'resident' });
+                  navigate('/');
+                }}
                 className="w-full p-6 bg-slate-800/50 border border-slate-700 rounded-[1.5rem] hover:bg-slate-800 hover:border-indigo-500/50 transition-all group text-left flex items-center gap-4"
               >
                 <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
