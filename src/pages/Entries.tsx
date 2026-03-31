@@ -331,7 +331,7 @@ const Entries = () => {
                  <Target className="text-rose-400" size={20} /> Orçamento 2026
                </h3>
                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed mb-8 pr-10">
-                 Acompanhamento do Executado vs Aprovado em Assembleia (Todas as Contas de Despesa).
+                 Acompanhamento do Executado vs Previsão Anual (Despesas Previsíveis Ordinárias).
                </p>
 
                <div className="space-y-6">
@@ -360,7 +360,7 @@ const Entries = () => {
                          </div>
                          <div className="flex justify-between items-center mt-2">
                            <span className="text-[9px] font-bold text-slate-500">Real: R$ {item.realized.toLocaleString('pt-BR')}</span>
-                           <span className="text-[9px] font-bold text-slate-600">Limite: R$ {item.budget.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+                           <span className="text-[9px] font-bold text-slate-600">Previsto: R$ {item.budget.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
                          </div>
                        </div>
                     );
@@ -370,7 +370,7 @@ const Entries = () => {
                <div className="mt-8 pt-6 border-t border-slate-800 flex items-center gap-4 bg-rose-500/5 p-4 rounded-2xl border border-rose-500/20">
                  <AlertCircle size={20} className="text-rose-400 shrink-0" />
                  <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest leading-relaxed">
-                   Rubricas ultrapassando 100% do orçamento requerem prestação de contas suplementar.
+                   Rubricas que ultrapassam a previsão exigem justificativa ou readequação no próximo ciclo.
                  </p>
                </div>
              </div>
