@@ -449,7 +449,7 @@ const Entries = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2 relative" onMouseLeave={() => setIsCategoryDropdownOpen(false)}>
+                <div className="space-y-2 relative">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Classificação Fiscal (Plano de Contas)</label>
                   
                   <div 
