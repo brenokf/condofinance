@@ -134,8 +134,88 @@ const AdminDashboard = () => {
     };
   });
 
+  const getCategoryTotal = (code: string) => {
+    return entries.filter((e: any) => {
+      const cat = accountPlan.find((ap: any) => ap.id === e.account_plan_id);
+      return cat?.code?.startsWith(code);
+    }).reduce((acc: number, curr: any) => acc + curr.amount, 0);
+  };
+
   return (
-    <div className="space-y-6 pb-12">
+    <>
+      {/* PERFECT A4 DRE REPORT (Only visible in Print Dialog) */}
+      <div className="hidden print:block w-full bg-white text-black font-sans p-8 absolute top-0 left-0 min-h-screen z-[99999]">
+        <div className="text-center border-b-2 border-black pb-6 mb-6">
+           <h1 className="text-2xl font-black uppercase text-black tracking-tighter">Demonstração do Resultado do Exercício - DRE</h1>
+           <p className="text-sm font-bold uppercase mt-1 text-black">CondoFinance - Simplificada Fiscal 2026</p>
+        </div>
+        
+        <div className="flex justify-between items-end mb-4 border-b border-gray-300 pb-2">
+           <div className="text-xs font-bold uppercase text-gray-600">Período de Apuração: 01/Jan a 31/Dez</div>
+           <div className="text-xs font-bold uppercase text-gray-600">Emissão: {new Date().toLocaleDateString('pt-BR')}</div>
+        </div>
+
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b-2 border-black text-xs uppercase text-black font-black">
+              <th className="py-2 w-24">Código</th>
+              <th className="py-2">Rubrica Contábil</th>
+              <th className="py-2 text-right">Saldo Realizado (R$)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="bg-gray-100 border-b border-gray-300 text-sm">
+               <td className="py-3 px-2 font-bold" colSpan={2}>(=) RECEITA BRUTA ARRECADADA</td>
+               <td className="py-3 px-2 font-black text-right text-emerald-700">R$ {totalIncome.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            </tr>
+            {accountPlan.filter((ap: any) => ap.parent_id === null && ap.type === 'expense')
+               .sort((a: any, b: any) => a.code.localeCompare(b.code, undefined, { numeric: true }))
+               .map((parent: any) => {
+                  const parentTotal = getCategoryTotal(parent.code);
+                  const children = accountPlan.filter((ap: any) => ap.code.startsWith(parent.code + '.') && ap.id !== parent.id);
+                  return (
+                     <React.Fragment key={parent.id}>
+                        <tr className="border-b border-gray-300 bg-gray-50">
+                           <td className="py-2 pl-2 text-xs font-black text-gray-800">{parent.code}</td>
+                           <td className="py-2 text-xs font-black uppercase text-gray-800">{parent.name}</td>
+                           <td className="py-2 pr-2 text-right text-xs font-bold text-rose-700">(-) R$ {parentTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                        </tr>
+                        {children.map((child: any) => {
+                           const childTotal = getCategoryTotal(child.code);
+                           if (childTotal === 0) return null;
+                           return (
+                             <tr key={child.id} className="border-b border-gray-100">
+                               <td className="py-1.5 pl-6 text-[10px] text-gray-600">{child.code}</td>
+                               <td className="py-1.5 text-[10px] text-gray-700 uppercase">{child.name}</td>
+                               <td className="py-1.5 pr-2 text-right text-[10px] text-gray-700">R$ {childTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                             </tr>
+                           );
+                        })}
+                     </React.Fragment>
+                  )
+            })}
+          </tbody>
+          <tfoot className="border-t-2 border-black">
+            <tr className="text-sm font-black uppercase">
+              <td className="py-4 px-2" colSpan={2}>(=) RESULTADO LÍQUIDO DO EXERCÍCIO</td>
+              <td className={`py-4 px-2 text-right ${saldoFinal >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>R$ {saldoFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+            </tr>
+          </tfoot>
+        </table>
+        
+        <div className="mt-20 pt-8 grid grid-cols-2 gap-12 text-center text-xs font-bold text-gray-600 uppercase">
+           <div>
+             <div className="w-48 mx-auto border-b border-black mb-2"></div>
+             Assinatura do Síndico
+           </div>
+           <div>
+             <div className="w-48 mx-auto border-b border-black mb-2"></div>
+             Conselho Fiscal
+           </div>
+        </div>
+      </div>
+
+      <div className="space-y-6 pb-12 print:hidden">
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-4">
         <div>
@@ -153,7 +233,10 @@ const AdminDashboard = () => {
             <RefreshCcw size={16} className={resetting ? 'animate-spin' : ''} />
             {resetting ? 'Resetando...' : 'Resetar Demo'}
           </button>
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20">
+          <button 
+            onClick={() => window.print()}
+            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
+          >
             <Printer size={16} /> Emitir DRE
           </button>
         </div>
@@ -485,6 +568,7 @@ const AdminDashboard = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
